@@ -4,13 +4,12 @@ import httpx
 import uvicorn
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
-from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
 
-# Initialize FastMCP Server
-mcp = FastMCP("Printify")
+# Setting host="0.0.0.0" allows Render and external clients like Gemini to connect
+mcp = FastMCP("Printify", host="0.0.0.0")
 
 BASE_URL = "https://api.printify.com/v1"
 API_TOKEN = os.environ.get("PRINTIFY_API_TOKEN")
@@ -116,14 +115,8 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# Allow your Render domain through the security filter
-security = TransportSecuritySettings(
-    enable_dns_rebinding_protection=False,
-    allowed_hosts=["printify-mcp-2.onrender.com", "printify-mcp-2.onrender.com:*", "*"]
-)
-
-# Pass transport_security to streamable_http_app
-app = mcp.streamable_http_app(transport_security=security)
+# Expose Starlette app (no arguments inside parentheses)
+app = mcp.streamable_http_app()
 
 # Enable CORS for Gemini web client
 app.add_middleware(
@@ -136,7 +129,7 @@ app.add_middleware(
 )
 
 async def root_health(request):
-    return JSONResponse({"status": "ok", "mcp": "Printify", "sse_endpoint": "/sse"})
+    return JSONResponse({"status": "ok", "mcp": "Printify", "endpoint": "/mcp"})
 
 app.routes.append(Route("/", root_health))
 
