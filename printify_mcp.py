@@ -112,8 +112,16 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# Expose Starlette app
+# Expose Starlette app and add root health check for Gemini
 app = mcp.sse_app()
+
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+async def root_health(request):
+    return JSONResponse({"status": "ok", "mcp": "Printify"})
+
+app.routes.append(Route("/", root_health))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
