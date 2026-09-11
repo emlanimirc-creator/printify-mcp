@@ -115,8 +115,8 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# Expose Starlette app
-app = mcp.sse_app()
+# Expose Starlette app with Streamable HTTP
+app = mcp.streamable_http_app()
 
 # Enable CORS for Gemini web client
 app.add_middleware(
