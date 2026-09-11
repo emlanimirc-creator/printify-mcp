@@ -4,6 +4,7 @@ import httpx
 import uvicorn
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 
 # Initialize FastMCP Server
 mcp = FastMCP("Printify")
