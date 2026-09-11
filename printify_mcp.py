@@ -1,19 +1,9 @@
 import os
-
-# Force FastMCP to bind to Render's public interface
-os.environ["FASTMCP_HOST"] = "0.0.0.0"
-os.environ["FASTMCP_PORT"] = os.environ.get("PORT", "10000")
-
 import json
 import httpx
+import uvicorn
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
-
-# Render port configuration
-port = int(os.environ.get("PORT", 10000))
-mcp = FastMCP("Printify", host="0.0.0.0", port=port)
-mcp.settings.host = "0.0.0.0"
-mcp.settings.port = port
 
 # Initialize FastMCP Server
 mcp = FastMCP("Printify")
@@ -30,7 +20,9 @@ def get_headers() -> Dict[str, str]:
         "User-Agent": "Printify-MCP-Server/1.0",
     }
 
+# ==========================================
 # 1. SHOPS
+# ==========================================
 @mcp.tool()
 async def list_shops() -> str:
     """Retrieve all Printify shops connected to the account."""
@@ -39,10 +31,12 @@ async def list_shops() -> str:
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# 2. CATALOG
+# ==========================================
+# 2. CATALOG & BLUEPRINTS
+# ==========================================
 @mcp.tool()
 async def list_blueprints() -> str:
-    """List available product blueprints (e.g. t-shirts, hoodies) from Printify catalog."""
+    """List available product blueprints from the Printify catalog."""
     async with httpx.AsyncClient() as client:
         res = await client.get(f"{BASE_URL}/catalog/blueprints.json", headers=get_headers())
         res.raise_for_status()
@@ -67,7 +61,9 @@ async def get_blueprint_variants(blueprint_id: int, print_provider_id: int) -> s
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# 3. UPLOADS
+# ==========================================
+# 3. UPLOADS / ARTWORK
+# ==========================================
 @mcp.tool()
 async def upload_artwork_url(file_name: str, url: str) -> str:
     """Upload an artwork image to Printify from a public image URL."""
@@ -78,7 +74,9 @@ async def upload_artwork_url(file_name: str, url: str) -> str:
         data = res.json()
         return json.dumps({"image_id": data.get("id"), "file_name": data.get("file_name")}, indent=2)
 
+# ==========================================
 # 4. PRODUCTS
+# ==========================================
 @mcp.tool()
 async def list_products(shop_id: int, limit: int = 10, page: int = 1) -> str:
     """List existing products inside a specific Printify shop."""
@@ -114,6 +112,9 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-    # Binds to Render's assigned port
-    if __name__ == "__main__":
-        mcp.run(transport="sse")
+# Expose Starlette app
+app = mcp.sse_app()
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
