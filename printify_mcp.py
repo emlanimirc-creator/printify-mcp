@@ -112,4 +112,4 @@ async def create_product(
 if __name__ == "__main__":
     # Binds to Render's assigned port
     if __name__ == "__main__":
-    mcp.run(transport="sse")
+        mcp.run(transport="sse")
