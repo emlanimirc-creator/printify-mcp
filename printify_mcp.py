@@ -4,6 +4,12 @@ import httpx
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
 
+# Render port configuration
+port = int(os.environ.get("PORT", 10000))
+mcp = FastMCP("Printify", host="0.0.0.0", port=port)
+mcp.settings.host = "0.0.0.0"
+mcp.settings.port = port
+
 # Initialize FastMCP Server
 mcp = FastMCP("Printify")
 
@@ -105,5 +111,5 @@ async def create_product(
 
 if __name__ == "__main__":
     # Binds to Render's assigned port
-    port = int(os.environ.get("PORT", 8000))
-    mcp.run(transport="sse", host="0.0.0.0", port=port)
+    if __name__ == "__main__":
+    mcp.run(transport="sse")
