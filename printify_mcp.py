@@ -5,9 +5,14 @@ import uvicorn
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.responses import JSONResponse
+from starlette.routing import Route
+
+# Allow cloud hostnames (Render, Google) to access the server
+security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
 
 # Initialize FastMCP Server
-mcp = FastMCP("Printify")
+mcp = FastMCP("Printify", transport_security=security)
 
 BASE_URL = "https://api.printify.com/v1"
 API_TOKEN = os.environ.get("PRINTIFY_API_TOKEN")
@@ -113,11 +118,8 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# Expose Starlette app and add root health check for Gemini
-app = mcp.sse_app()
-
-from starlette.responses import JSONResponse
-from starlette.routing import Route
+# Expose Starlette app with security settings applied
+app = mcp.sse_app(transport_security=security)
 
 async def root_health(request):
     return JSONResponse({"status": "ok", "mcp": "Printify"})
