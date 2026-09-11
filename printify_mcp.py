@@ -4,6 +4,7 @@ import httpx
 import uvicorn
 from typing import Optional, List, Dict, Any
 from mcp.server.fastmcp import FastMCP
+from mcp.server.transport_security import TransportSecuritySettings
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Route
@@ -115,8 +116,14 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-# Expose Starlette app with Streamable HTTP
-app = mcp.streamable_http_app()
+# Allow your Render domain through the security filter
+security = TransportSecuritySettings(
+    enable_dns_rebinding_protection=False,
+    allowed_hosts=["printify-mcp-2.onrender.com", "printify-mcp-2.onrender.com:*", "*"]
+)
+
+# Pass transport_security to streamable_http_app
+app = mcp.streamable_http_app(transport_security=security)
 
 # Enable CORS for Gemini web client
 app.add_middleware(
