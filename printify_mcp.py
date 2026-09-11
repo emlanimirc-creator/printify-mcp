@@ -1,4 +1,9 @@
 import os
+
+# Force FastMCP to bind to Render's public interface
+os.environ["FASTMCP_HOST"] = "0.0.0.0"
+os.environ["FASTMCP_PORT"] = os.environ.get("PORT", "10000")
+
 import json
 import httpx
 from typing import Optional, List, Dict, Any
@@ -109,7 +114,6 @@ async def create_product(
         res.raise_for_status()
         return json.dumps(res.json(), indent=2)
 
-if __name__ == "__main__":
     # Binds to Render's assigned port
     if __name__ == "__main__":
         mcp.run(transport="sse")
